@@ -1,0 +1,208 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* MedFlow AI — Premium Apple Glass Dark Theme
+   Near-black backgrounds, warm gold accents, frosted glass effects,
+   refined micro-interactions, no jarring greens or reds.
+   All colors MUST be HSL.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    /* Force dark mode only */
+    --background: 228 14% 6%;
+    --foreground: 40 10% 92%;
+
+    --card: 228 12% 9%;
+    --card-foreground: 40 10% 92%;
+
+    --popover: 228 14% 10%;
+    --popover-foreground: 40 10% 92%;
+
+    /* Gold/Yellow accent primary */
+    --primary: 45 93% 58%;
+    --primary-foreground: 228 14% 6%;
+    --primary-glow: 45 85% 68%;
+
+    --secondary: 228 10% 13%;
+    --secondary-foreground: 40 10% 80%;
+
+    --muted: 228 10% 12%;
+    --muted-foreground: 228 8% 48%;
+
+    /* Accent — warm amber (NOT green!) */
+    --accent: 35 70% 50%;
+    --accent-foreground: 228 14% 6%;
+
+    /* Status colors — muted, theme-consistent */
+    --success: 160 50% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 80% 55%;
+    --warning-foreground: 0 0% 0%;
+
+    --destructive: 0 55% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 228 10% 14%;
+    --input: 228 10% 12%;
+    --ring: 45 93% 58%;
+
+    --radius: 1rem;
+
+    /* Premium gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(45 93% 58%), hsl(38 85% 48%));
+    --gradient-secondary: linear-gradient(135deg, hsl(35 70% 50%), hsl(28 65% 45%));
+    --gradient-background: linear-gradient(180deg, hsl(228 14% 6%), hsl(228 14% 8%));
+    --gradient-card: linear-gradient(145deg, hsl(228 12% 10%), hsl(228 12% 8%));
+    --gradient-glass: linear-gradient(135deg, hsl(228 12% 12% / 0.6), hsl(228 12% 8% / 0.4));
+
+    /* Premium shadows */
+    --shadow-medical: 0 4px 24px -4px hsl(45 93% 58% / 0.08);
+    --shadow-card: 0 2px 12px -4px hsl(0 0% 0% / 0.5);
+    --shadow-elevation: 0 8px 32px -8px hsl(45 93% 58% / 0.12);
+    --shadow-glow: 0 0 20px hsl(45 93% 58% / 0.08);
+    --shadow-glass: 0 8px 32px hsl(0 0% 0% / 0.3), inset 0 1px 0 hsl(0 0% 100% / 0.05);
+
+    /* Status indicators — all muted */
+    --status-available: 160 50% 42%;
+    --status-occupied: 220 60% 55%;
+    --status-maintenance: 38 80% 55%;
+    --status-reserved: 45 93% 58%;
+    --status-cleaning: 260 40% 50%;
+
+    --sidebar-background: 228 14% 7%;
+    --sidebar-foreground: 40 10% 70%;
+    --sidebar-primary: 45 93% 58%;
+    --sidebar-primary-foreground: 228 14% 6%;
+    --sidebar-accent: 228 10% 12%;
+    --sidebar-accent-foreground: 40 10% 92%;
+    --sidebar-border: 228 10% 12%;
+    --sidebar-ring: 45 93% 58%;
+
+    --chart-1: 45 93% 58%;
+    --chart-2: 160 50% 42%;
+    --chart-3: 200 60% 55%;
+    --chart-4: 260 40% 50%;
+    --chart-5: 0 55% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Premium scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(228 10% 18%);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(45 93% 58% / 0.3);
+  }
+}
+
+@layer utilities {
+  /* Apple Glass Card */
+  .glass-card {
+    @apply backdrop-blur-2xl border border-border/40;
+    background: linear-gradient(
+      135deg,
+      hsl(228 12% 11% / 0.8),
+      hsl(228 12% 8% / 0.6)
+    );
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-surface {
+    @apply backdrop-blur-xl;
+    background: hsl(228 12% 10% / 0.7);
+    border: 1px solid hsl(228 10% 16% / 0.5);
+  }
+
+  .gold-glow {
+    box-shadow: 0 0 20px hsl(45 93% 58% / 0.12), 0 0 40px hsl(45 93% 58% / 0.04);
+  }
+
+  .premium-border {
+    @apply border border-border/40 hover:border-primary/25 transition-colors duration-300;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-[hsl(45,93%,58%)] to-[hsl(38,80%,68%)] bg-clip-text text-transparent;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      110deg,
+      hsl(228 12% 9%) 0%,
+      hsl(228 12% 13%) 40%,
+      hsl(228 12% 9%) 60%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  @keyframes shimmer-sweep {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+  .hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px -5px hsl(0 0% 0% / 0.4);
+  }
+
+  /* Apple frosted glass effect */
+  .apple-glass {
+    @apply backdrop-blur-2xl rounded-2xl;
+    background: linear-gradient(
+      135deg,
+      hsl(228 12% 12% / 0.75),
+      hsl(228 12% 8% / 0.55)
+    );
+    border: 1px solid hsl(228 10% 18% / 0.5);
+    box-shadow: 
+      0 8px 32px hsl(0 0% 0% / 0.25),
+      inset 0 1px 0 hsl(0 0% 100% / 0.04),
+      inset 0 -1px 0 hsl(0 0% 0% / 0.1);
+  }
+
+  /* Subtle inner glow on cards */
+  .inner-glow {
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.04);
+  }
+}
