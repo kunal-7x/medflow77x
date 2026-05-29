@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, TestTube, Scan, Plus, Clock, CheckCircle, AlertTriangle, Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { FileText, TestTube, Scan, Plus, Clock, CheckCircle, AlertTriangle, Eye, Search } from "lucide-react";
 import { useHospitalData } from "@/contexts/HospitalDataContext";
 import { OrderFormModal } from "@/components/modals/OrderFormModal";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { downloadCSV } from "@/lib/exportUtils";
+import { useAiFocus } from "@/hooks/useAiFocus";
 
 export function Orders() {
   const { orders, updateOrder } = useHospitalData();
@@ -20,10 +22,27 @@ export function Orders() {
   const [detailOrder, setDetailOrder] = useState<any>(null);
   const [statusOrder, setStatusOrder] = useState<any>(null);
   const [newStatus, setNewStatus] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("orders");
+  const aiFocus = useAiFocus(setSearchTerm);
 
-  const activeOrders = orders.filter(o => o.status === 'pending' || o.status === 'in-progress');
-  const completedOrders = orders.filter(o => o.status === 'completed');
-  const allOrders = orders;
+  useEffect(() => {
+    if (!aiFocus.focusId) return;
+    const focused = orders.find(o => o.id === aiFocus.focusId);
+    if (focused?.status === "completed") setActiveTab("results");
+    else setActiveTab("orders");
+  }, [aiFocus.focusId, orders]);
+
+  const visibleOrders = orders.filter(o => {
+    const q = searchTerm.toLowerCase();
+    return o.id.toLowerCase().includes(q) ||
+      o.patientName.toLowerCase().includes(q) ||
+      o.test.toLowerCase().includes(q) ||
+      o.doctor.toLowerCase().includes(q);
+  });
+  const activeOrders = visibleOrders.filter(o => o.status === 'pending' || o.status === 'in-progress');
+  const completedOrders = visibleOrders.filter(o => o.status === 'completed');
+  const allOrders = visibleOrders;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -97,7 +116,12 @@ export function Orders() {
         ))}
       </div>
 
-      <Tabs defaultValue="orders" className="space-y-6">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input placeholder="Search orders, patients, tests..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="orders">Active Orders</TabsTrigger>
           <TabsTrigger value="results">Results</TabsTrigger>
@@ -112,7 +136,7 @@ export function Orders() {
                 {activeOrders.slice(0, 30).map((order) => {
                   const TypeIcon = getTypeIcon(order.type);
                   return (
-                    <div key={order.id} className="flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200">
+                    <div key={order.id} className={`flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200 ${aiFocus.focusClass(order.id)}`}>
                       <div className="flex items-center gap-4">
                         <TypeIcon className="w-8 h-8 text-primary" />
                         <div>
@@ -146,7 +170,7 @@ export function Orders() {
                 {completedOrders.slice(0, 30).map((order) => {
                   const TypeIcon = getTypeIcon(order.type);
                   return (
-                    <div key={order.id} className="flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200">
+                    <div key={order.id} className={`flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200 ${aiFocus.focusClass(order.id)}`}>
                       <div className="flex items-center gap-4">
                         <TypeIcon className="w-8 h-8 text-primary" />
                         <div>
@@ -182,7 +206,7 @@ export function Orders() {
             <CardContent>
               <div className="space-y-3 max-h-[500px] overflow-y-auto">
                 {allOrders.slice(0, 50).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 border border-border/30 rounded-xl hover:bg-secondary/30 transition-all">
+                  <div key={order.id} className={`flex items-center justify-between p-3 border border-border/30 rounded-xl hover:bg-secondary/30 transition-all ${aiFocus.focusClass(order.id)}`}>
                     <div className="flex items-center gap-3">
                       <div className="text-xs font-mono text-muted-foreground w-16">{order.id}</div>
                       <div>

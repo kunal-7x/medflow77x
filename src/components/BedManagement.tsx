@@ -21,6 +21,7 @@ import {
 import { useHospitalData } from "@/contexts/HospitalDataContext";
 import { BedAssignmentModal } from "@/components/modals/BedAssignmentModal";
 import { useToast } from "@/hooks/use-toast";
+import { useAiFocus } from "@/hooks/useAiFocus";
 
 interface BedData {
   id: string;
@@ -46,6 +47,7 @@ export function BedManagement() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedBed, setSelectedBed] = useState<any>(null);
   const [isFloorPlanView, setIsFloorPlanView] = useState(false);
+  const aiFocus = useAiFocus(setSearchTerm);
 
   // Get patients for each bed
   const bedsWithPatients = beds.map(bed => {
@@ -66,6 +68,7 @@ export function BedManagement() {
   const filteredBeds = bedsWithPatients.filter(bed => {
     const matchesWard = selectedWard === "all" || bed.ward === selectedWard;
     const matchesSearch = bed.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         bed.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          bed.patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          bed.ward.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesWard && matchesSearch;
@@ -295,7 +298,7 @@ export function BedManagement() {
                   {filteredBeds.filter(bed => bed.ward === 'ICU').map((bed) => (
                     <div
                       key={bed.id}
-                      className={`p-2 rounded text-center text-xs cursor-pointer transition-colors ${
+                      className={`p-2 rounded text-center text-xs cursor-pointer transition-colors ${aiFocus.focusClass(bed.id)} ${
                         bed.status === 'available' ? 'bg-status-available/20 hover:bg-status-available/30' :
                         bed.status === 'occupied' ? 'bg-status-occupied/20 hover:bg-status-occupied/30' :
                         bed.status === 'maintenance' ? 'bg-status-maintenance/20 hover:bg-status-maintenance/30' :
@@ -322,7 +325,7 @@ export function BedManagement() {
                   {filteredBeds.filter(bed => bed.ward !== 'ICU').map((bed) => (
                     <div
                       key={bed.id}
-                      className={`p-2 rounded text-center text-xs cursor-pointer transition-colors ${
+                      className={`p-2 rounded text-center text-xs cursor-pointer transition-colors ${aiFocus.focusClass(bed.id)} ${
                         bed.status === 'available' ? 'bg-status-available/20 hover:bg-status-available/30' :
                         bed.status === 'occupied' ? 'bg-status-occupied/20 hover:bg-status-occupied/30' :
                         bed.status === 'maintenance' ? 'bg-status-maintenance/20 hover:bg-status-maintenance/30' :
@@ -347,7 +350,7 @@ export function BedManagement() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredBeds.map((bed) => (
-            <Card key={bed.id} className="hover:shadow-medical transition-all duration-200 cursor-pointer">
+            <Card key={bed.id} className={`hover:shadow-medical transition-all duration-200 cursor-pointer ${aiFocus.focusClass(bed.id)}`}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold">{bed.number}</CardTitle>

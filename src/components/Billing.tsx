@@ -11,6 +11,7 @@ import { BillingModal } from "@/components/modals/BillingModal";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { downloadTextReport, generateInvoiceReport, generateBillingReport, downloadCSV } from "@/lib/exportUtils";
+import { useAiFocus } from "@/hooks/useAiFocus";
 
 export function Billing() {
   const { bills, updateBill, patients } = useHospitalData();
@@ -21,6 +22,7 @@ export function Billing() {
   const [selectedBillId, setSelectedBillId] = useState<string | undefined>();
   const [viewBill, setViewBill] = useState<any>(null);
   const [viewClaim, setViewClaim] = useState<any>(null);
+  const aiFocus = useAiFocus(setSearchTerm);
 
   // Payment flow states
   const [paymentStep, setPaymentStep] = useState(0); // 0=closed, 1=form, 2=pin, 3=processing, 4=confirmation
@@ -42,7 +44,12 @@ export function Billing() {
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
-  const filteredBills = bills.filter(b => b.patientName.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredBills = bills.filter(b => {
+    const q = searchTerm.toLowerCase();
+    return b.patientName.toLowerCase().includes(q) ||
+      b.id.toLowerCase().includes(q) ||
+      (b.insuranceClaimId || '').toLowerCase().includes(q);
+  });
 
   // Mock claims from bills
   const claims = bills.filter(b => b.insuranceClaimId).map(b => ({
@@ -160,7 +167,7 @@ export function Billing() {
             <CardContent>
               <div className="space-y-4 max-h-[500px] overflow-y-auto">
                 {filteredBills.slice(0, 30).map((bill) => (
-                  <div key={bill.id} className="flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200">
+                  <div key={bill.id} className={`flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200 ${aiFocus.focusClass(bill.id)}`}>
                     <div className="flex items-center gap-4">
                       <DollarSign className="w-8 h-8 text-primary" />
                       <div>
@@ -194,7 +201,7 @@ export function Billing() {
             <CardContent>
               <div className="space-y-4 max-h-[500px] overflow-y-auto">
                 {claims.slice(0, 20).map((claim) => (
-                  <div key={claim.id} className="flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200">
+                  <div key={claim.id} className={`flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200 ${aiFocus.focusClass(claim.id)}`}>
                     <div className="flex items-center gap-4">
                       <FileText className="w-8 h-8 text-primary" />
                       <div>

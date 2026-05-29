@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Bell, AlertTriangle, CheckCircle, Clock, MessageSquare, Mail, Smartphone, Settings, Search, Trash2, Archive } from "lucide-react";
 import { useHospitalData } from "@/contexts/HospitalDataContext";
 import { useToast } from "@/hooks/use-toast";
+import { useAiFocus } from "@/hooks/useAiFocus";
 
 export function Notifications() {
   const { alerts, markAlertAsRead, markAllAlertsAsRead, deleteAlert } = useHospitalData();
@@ -15,6 +16,11 @@ export function Notifications() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [activeTab, setActiveTab] = useState("inbox");
+  const aiFocus = useAiFocus(setSearchTerm);
+
+  useEffect(() => {
+    if (aiFocus.focusId || aiFocus.search) setActiveTab("inbox");
+  }, [aiFocus.focusId, aiFocus.search]);
 
   const [settings, setSettings] = useState([
     { id: "critical", name: "Critical Alerts", description: "Life-threatening situations", enabled: true },
@@ -43,7 +49,9 @@ export function Notifications() {
   };
 
   const filteredAlerts = alerts.filter(a => {
-    const matchesSearch = a.title.toLowerCase().includes(searchTerm.toLowerCase()) || a.message.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterType === "all" || a.type === filterType;
     return matchesSearch && matchesFilter;
   });
@@ -116,7 +124,7 @@ export function Notifications() {
             <CardContent className="p-0">
               <div className="max-h-[500px] overflow-y-auto">
                 {filteredAlerts.slice(0, 30).map((alert) => (
-                  <div key={alert.id} className={`flex items-start gap-4 p-4 border-b border-border/20 last:border-b-0 hover:bg-secondary/30 transition-all duration-200 ${!alert.isRead ? 'bg-primary/5' : ''}`}>
+                  <div key={alert.id} className={`flex items-start gap-4 p-4 border-b border-border/20 last:border-b-0 hover:bg-secondary/30 transition-all duration-200 ${!alert.isRead ? 'bg-primary/5' : ''} ${aiFocus.focusClass(alert.id)}`}>
                     <div className="flex-shrink-0 mt-1">{getTypeIcon(alert.type)}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">

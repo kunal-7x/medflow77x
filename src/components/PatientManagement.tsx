@@ -10,6 +10,7 @@ import { PatientFormModal } from "@/components/modals/PatientFormModal";
 import { QuickActionsModal } from "@/components/modals/QuickActionsModal";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Filter, Plus, Users, UserPlus, Calendar, Download, Zap } from "lucide-react";
+import { useAiFocus } from "@/hooks/useAiFocus";
 
 export function PatientManagement() {
   const { patients } = useHospitalData();
@@ -20,6 +21,7 @@ export function PatientManagement() {
   const [isAdmitModalOpen, setIsAdmitModalOpen] = useState(false);
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState<'admit' | 'surgery' | 'report' | 'round' | null>(null);
+  const aiFocus = useAiFocus(setSearchTerm);
 
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -130,7 +132,9 @@ export function PatientManagement() {
       {/* Patient Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredPatients.map((patient) => (
-          <PatientCard key={patient.id} patient={patient} />
+          <div key={patient.id} className={`rounded-2xl ${aiFocus.focusClass(patient.id)}`}>
+            <PatientCard patient={patient} />
+          </div>
         ))}
       </div>
 

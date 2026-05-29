@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Calendar, Clock, UserCheck, UserX, Plus, RotateCcw, Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Users, Calendar, Clock, UserCheck, UserX, Plus, RotateCcw, Eye, Search } from "lucide-react";
 import { useHospitalData } from "@/contexts/HospitalDataContext";
 import { StaffFormModal } from "@/components/modals/StaffFormModal";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAiFocus } from "@/hooks/useAiFocus";
 
 export function StaffScheduling() {
   const { staff, updateStaff } = useHospitalData();
@@ -17,12 +19,26 @@ export function StaffScheduling() {
   const [editStaffId, setEditStaffId] = useState<string | undefined>();
   const [viewSchedule, setViewSchedule] = useState<any>(null);
   const [viewStaff, setViewStaff] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("schedule");
+  const [searchTerm, setSearchTerm] = useState("");
+  const aiFocus = useAiFocus(setSearchTerm);
+
+  useEffect(() => {
+    if (aiFocus.focusId || aiFocus.search) setActiveTab("staff");
+  }, [aiFocus.focusId, aiFocus.search]);
 
   const activeStaff = staff.filter(s => s.status === 'active');
   const onLeave = staff.filter(s => s.status === 'on-leave');
   const offDuty = staff.filter(s => s.status === 'off-duty');
   const doctors = staff.filter(s => s.role === 'Doctor' || s.role === 'Surgeon');
   const nurses = staff.filter(s => s.role === 'Nurse');
+  const filteredStaff = staff.filter(member => {
+    const q = searchTerm.toLowerCase();
+    return member.name.toLowerCase().includes(q) ||
+      member.id.toLowerCase().includes(q) ||
+      member.role.toLowerCase().includes(q) ||
+      member.department.toLowerCase().includes(q);
+  });
 
   // Mock time-off requests
   const [requests, setRequests] = useState([
@@ -88,7 +104,7 @@ export function StaffScheduling() {
         ))}
       </div>
 
-      <Tabs defaultValue="schedule" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="schedule">Weekly Schedule</TabsTrigger>
           <TabsTrigger value="staff">Staff Directory</TabsTrigger>
@@ -129,11 +145,15 @@ export function StaffScheduling() {
 
         <TabsContent value="staff" className="space-y-4">
           <Card>
-            <CardHeader><CardTitle>Staff Directory ({staff.length})</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Staff Directory ({filteredStaff.length} of {staff.length})</CardTitle></CardHeader>
             <CardContent>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input placeholder="Search staff, roles, departments..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+              </div>
               <div className="space-y-4 max-h-[500px] overflow-y-auto">
-                {staff.slice(0, 50).map((member) => (
-                  <div key={member.id} className="flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200">
+                {filteredStaff.slice(0, 50).map((member) => (
+                  <div key={member.id} className={`flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200 ${aiFocus.focusClass(member.id)}`}>
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center"><Users className="w-5 h-5 text-primary" /></div>
                       <div>

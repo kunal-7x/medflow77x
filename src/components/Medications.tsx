@@ -10,6 +10,7 @@ import { MedicationFormModal } from "@/components/modals/MedicationFormModal";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { downloadTextReport, generateMedicationReport } from "@/lib/exportUtils";
+import { useAiFocus } from "@/hooks/useAiFocus";
 
 export function Medications() {
   const { medications, patients } = useHospitalData();
@@ -20,8 +21,9 @@ export function Medications() {
   const [selectedMedId, setSelectedMedId] = useState<string | undefined>();
   const [detailMed, setDetailMed] = useState<any>(null);
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
+  const aiFocus = useAiFocus(setSearchTerm);
 
-  const activeMeds = medications.filter(m => m.status === 'active');
+  const activeMeds = medications.filter(m => m.status === 'active' || aiFocus.isFocused(m.id));
   
   // Mock inventory based on unique medication names
   const uniqueMeds = [...new Set(medications.map(m => m.medication))];
@@ -59,7 +61,13 @@ export function Medications() {
     toast({ title: "Report Generated", description: `${type} report downloaded` });
   };
 
-  const filteredMeds = activeMeds.filter(m => m.medication.toLowerCase().includes(searchTerm.toLowerCase()) || m.patientName.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredMeds = activeMeds.filter(m => {
+    const q = searchTerm.toLowerCase();
+    return m.medication.toLowerCase().includes(q) ||
+      m.patientName.toLowerCase().includes(q) ||
+      m.doctor.toLowerCase().includes(q) ||
+      m.id.toLowerCase().includes(q);
+  });
 
   return (
     <div className="space-y-6">
@@ -106,7 +114,7 @@ export function Medications() {
             <CardContent>
               <div className="space-y-4 max-h-[500px] overflow-y-auto">
                 {filteredMeds.slice(0, 30).map((med) => (
-                  <div key={med.id} className="flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200">
+                  <div key={med.id} className={`flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200 ${aiFocus.focusClass(med.id)}`}>
                     <div className="flex items-center gap-4">
                       <Pill className="w-8 h-8 text-primary" />
                       <div>

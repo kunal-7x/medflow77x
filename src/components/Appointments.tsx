@@ -12,6 +12,7 @@ import { ContactModal } from "@/components/modals/ContactModal";
 import { RescheduleModal } from "@/components/modals/RescheduleModal";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useAiFocus } from "@/hooks/useAiFocus";
 
 export function Appointments() {
   const { appointments, updateAppointment, deleteAppointment, getAnalytics } = useHospitalData();
@@ -23,6 +24,7 @@ export function Appointments() {
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [viewAppointment, setViewAppointment] = useState<any>(null);
+  const aiFocus = useAiFocus(setSearchTerm);
   
   const analytics = getAnalytics();
 
@@ -37,7 +39,9 @@ export function Appointments() {
   };
 
   const filteredAppointments = appointments.filter(apt => {
-    const matchesSearch = apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) || apt.doctor.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      apt.doctor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      apt.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || apt.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -110,7 +114,7 @@ export function Appointments() {
             <CardContent>
               <div className="space-y-4 max-h-[500px] overflow-y-auto">
                 {filteredAppointments.slice(0, 30).map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200">
+                  <div key={appointment.id} className={`flex items-center justify-between p-4 border border-border/30 rounded-2xl hover:bg-secondary/30 transition-all duration-200 ${aiFocus.focusClass(appointment.id)}`}>
                     <div className="flex items-center gap-4">
                       <div className="text-center">
                         <p className="font-semibold">{appointment.time}</p>

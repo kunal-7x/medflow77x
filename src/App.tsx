@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { HospitalDataProvider } from "@/contexts/HospitalDataContext";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -28,6 +28,9 @@ import { Sidebar } from "./components/Sidebar";
 import { SoundToggle } from "./components/SoundToggle";
 import { Loader2 } from "lucide-react";
 import AIChatbot from "./components/AIChatbot";
+import { chatEvents } from "@/lib/chatEvents";
+import { getAiActionRoute } from "@/lib/aiNavigation";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +92,20 @@ function ThemeLoader() {
   return null;
 }
 
+function AiActionNavigator() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    return chatEvents.on("action", (payload) => {
+      const route = getAiActionRoute(payload);
+      if (!route) return;
+      window.setTimeout(() => navigate(route), 180);
+    });
+  }, [navigate]);
+
+  return null;
+}
+
 function AppRoutes() {
   const { user, loading, isVisitor } = useAuth();
 
@@ -133,6 +150,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <ThemeLoader />
+            <AiActionNavigator />
             <AppRoutes />
             <AIChatbot />
           </BrowserRouter>
