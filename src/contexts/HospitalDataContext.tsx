@@ -247,11 +247,45 @@ function mapDbBill(row: any): Bill {
   return { id: row.id, patientId: row.patient_id || '', patientName: row.patient_name, amount: Number(row.amount), status: row.status, dueDate: row.due_date || '', items: row.items || [], insuranceClaimId: row.insurance_claim_id };
 }
 
-// Visitor mock data stored in memory per session
-let visitorMockData: ReturnType<typeof generateLargeDataset> | null = null;
+type HospitalDataset = ReturnType<typeof generateLargeDataset>;
+
+const VISITOR_DATA_KEY = 'medflow_visitor_data_v1';
+
+function isHospitalDataset(data: unknown): data is HospitalDataset {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as Record<string, unknown>;
+  return ['patients', 'beds', 'appointments', 'orders', 'medications', 'staff', 'alerts', 'bills']
+    .every(key => Array.isArray(d[key]));
+}
+
+function readVisitorData(): HospitalDataset | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem(VISITOR_DATA_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    return isHospitalDataset(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistVisitorData(data: HospitalDataset) {
+  visitorMockData = data;
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(VISITOR_DATA_KEY, JSON.stringify(data));
+  } catch (err) {
+    console.warn('Failed to persist visitor data:', err);
+  }
+}
+
+// Visitor mock data is persisted so demo changes survive refresh.
+let visitorMockData: HospitalDataset | null = null;
 function getVisitorData() {
   if (!visitorMockData) {
-    visitorMockData = generateLargeDataset();
+    visitorMockData = readVisitorData() || generateLargeDataset();
+    persistVisitorData(visitorMockData);
   }
   return visitorMockData;
 }
@@ -297,7 +331,7 @@ export const HospitalDataProvider: React.FC<{ children: ReactNode }> = ({ childr
         supabase.from('appointments').select('*').order('date', { ascending: false }),
         supabase.from('orders').select('*').order('created_at', { ascending: false }),
         supabase.from('medications').select('*').order('created_at', { ascending: false }),
-        supabase.from('staff').select('*').order('name'),
+        supabase.from('staff').select('*').order('created_at', { ascending: false }),
         supabase.from('alerts').select('*').order('created_at', { ascending: false }),
         supabase.from('bills').select('*').order('created_at', { ascending: false }),
       ]);
@@ -318,6 +352,11 @@ export const HospitalDataProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  useEffect(() => {
+    if (!isVisitor || loading) return;
+    persistVisitorData({ patients, beds, appointments, orders, medications, staff, alerts, bills });
+  }, [isVisitor, loading, patients, beds, appointments, orders, medications, staff, alerts, bills]);
+
   // Listen to AI Chatbot actions and merge data directly into local state
   // This avoids needing a network refetch (which fails when ISP blocks Supabase)
   useEffect(() => {
@@ -332,7 +371,7 @@ export const HospitalDataProvider: React.FC<{ children: ReactNode }> = ({ childr
           case 'appointments': setAppointments(prev => [mapDbAppointment(record), ...prev]); break;
           case 'orders': setOrders(prev => [mapDbOrder(record), ...prev]); break;
           case 'medications': setMedications(prev => [mapDbMedication(record), ...prev]); break;
-          case 'staff': setStaff(prev => [...prev, mapDbStaff(record)]); break;
+          case 'staff': setStaff(prev => [mapDbStaff(record), ...prev]); break;
           case 'alerts': setAlerts(prev => [mapDbAlert(record), ...prev]); break;
           case 'bills': setBills(prev => [mapDbBill(record), ...prev]); break;
         }

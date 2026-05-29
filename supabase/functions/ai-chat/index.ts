@@ -203,7 +203,7 @@ async function exec(sb: any, action: string, data: any) {
         return error ? { ok:false, error:error.message } : { ok:true, table:"staff", op:"delete", id:data.id };
       }
       case "list_staff": {
-        const q = sb.from("staff").select("*").order("name");
+        const q = sb.from("staff").select("*").order("created_at", { ascending:false });
         if (data?.department) q.eq("department", data.department);
         if (data?.role) q.eq("role", data.role);
         const { data: r, error } = await q;
@@ -265,7 +265,7 @@ async function buildContext(sb: any) {
     sb.from("patients").select("id,name,age,gender,condition,ward,bed_number,status,doctor,diagnosis,phone").order("name").limit(10),
     sb.from("beds").select("id,number,ward,floor,status,patient_id").order("number").limit(15),
     sb.from("appointments").select("id,patient_name,doctor,date,time,type,status").order("date").limit(10),
-    sb.from("staff").select("id,name,role,department,shift,status").order("name").limit(10),
+    sb.from("staff").select("id,name,role,department,shift,status").order("created_at", { ascending:false }).limit(10),
     sb.from("alerts").select("id,type,title,priority,is_read").eq("is_read",false).order("created_at",{ascending:false}).limit(5),
     sb.from("orders").select("id,patient_name,type,test,doctor,status,priority").order("created_at",{ascending:false}).limit(5),
     sb.from("medications").select("id,patient_name,medication,dosage,frequency,doctor,status").eq("status","active").limit(5),
