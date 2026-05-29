@@ -59,7 +59,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "apple-glass m-2 rounded-2xl transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col overflow-hidden",
+        "apple-glass m-2 rounded-2xl transition-all duration-400 ease-in-out flex flex-col overflow-hidden",
         isCollapsed ? "w-[68px]" : "w-60"
       )}
       style={{ height: 'calc(100vh - 16px)' }}

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { generateLargeDataset } from '@/lib/mockDataGenerator';
+import { chatEvents } from '@/lib/chatEvents';
 
 // Types mapped to DB schema
 export interface Patient {
@@ -316,6 +317,57 @@ export const HospitalDataProvider: React.FC<{ children: ReactNode }> = ({ childr
   }, [user, isVisitor, loadVisitorData]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // Listen to AI Chatbot actions and merge data directly into local state
+  // This avoids needing a network refetch (which fails when ISP blocks Supabase)
+  useEffect(() => {
+    const unsub = chatEvents.on('action', (payload) => {
+      console.log('AI Action → local merge:', payload);
+      const { table, op, record, id } = payload;
+
+      if (op === 'insert' && record) {
+        switch (table) {
+          case 'patients': setPatients(prev => [mapDbPatient(record), ...prev]); break;
+          case 'beds': setBeds(prev => [...prev, mapDbBed(record)]); break;
+          case 'appointments': setAppointments(prev => [mapDbAppointment(record), ...prev]); break;
+          case 'orders': setOrders(prev => [mapDbOrder(record), ...prev]); break;
+          case 'medications': setMedications(prev => [mapDbMedication(record), ...prev]); break;
+          case 'staff': setStaff(prev => [...prev, mapDbStaff(record)]); break;
+          case 'alerts': setAlerts(prev => [mapDbAlert(record), ...prev]); break;
+          case 'bills': setBills(prev => [mapDbBill(record), ...prev]); break;
+        }
+      } else if (op === 'update' && record) {
+        const rid = record.id;
+        switch (table) {
+          case 'patients': setPatients(prev => prev.map(p => p.id === rid ? mapDbPatient(record) : p)); break;
+          case 'beds': setBeds(prev => prev.map(b => b.id === rid ? mapDbBed(record) : b)); break;
+          case 'appointments': setAppointments(prev => prev.map(a => a.id === rid ? mapDbAppointment(record) : a)); break;
+          case 'orders': setOrders(prev => prev.map(o => o.id === rid ? mapDbOrder(record) : o)); break;
+          case 'medications': setMedications(prev => prev.map(m => m.id === rid ? mapDbMedication(record) : m)); break;
+          case 'staff': setStaff(prev => prev.map(s => s.id === rid ? mapDbStaff(record) : s)); break;
+          case 'alerts': setAlerts(prev => prev.map(a => a.id === rid ? mapDbAlert(record) : a)); break;
+          case 'bills': setBills(prev => prev.map(b => b.id === rid ? mapDbBill(record) : b)); break;
+        }
+      } else if (op === 'delete' && id) {
+        switch (table) {
+          case 'patients': setPatients(prev => prev.filter(p => p.id !== id)); break;
+          case 'beds': setBeds(prev => prev.filter(b => b.id !== id)); break;
+          case 'appointments': setAppointments(prev => prev.filter(a => a.id !== id)); break;
+          case 'orders': setOrders(prev => prev.filter(o => o.id !== id)); break;
+          case 'medications': setMedications(prev => prev.filter(m => m.id !== id)); break;
+          case 'staff': setStaff(prev => prev.filter(s => s.id !== id)); break;
+          case 'alerts': setAlerts(prev => prev.filter(a => a.id !== id)); break;
+          case 'bills': setBills(prev => prev.filter(b => b.id !== id)); break;
+        }
+      } else if (op === 'list') {
+        // list operations don't modify state, they're display-only
+      } else {
+        // Fallback: try refetch (may fail if ISP blocks)
+        fetchAll().catch(() => console.warn('Refetch failed (ISP block?), but local state was already updated'));
+      }
+    });
+    return unsub;
+  }, [fetchAll]);
 
   // Realtime subscriptions (only for real users)
   useEffect(() => {

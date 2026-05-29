@@ -2,13 +2,19 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+// Use proxy URL in production to bypass ISP blocks (e.g. Jio)
+const isProd = import.meta.env.PROD;
+const proxyUrl = typeof window !== 'undefined' ? `${window.location.origin}/supabase-api` : '';
+const SUPABASE_URL = isProd && proxyUrl ? proxyUrl : import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  realtime: {
+    url: `${import.meta.env.VITE_SUPABASE_URL}/realtime/v1`,
+  },
   auth: {
     storage: localStorage,
     persistSession: true,

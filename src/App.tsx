@@ -49,10 +49,10 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Layout = ({ children }: { children: React.ReactNode }) => (
-  <div className="min-h-screen bg-background flex w-full">
+  <div className="h-screen overflow-hidden bg-background flex w-full">
     <Sidebar />
-    <main className="flex-1 min-w-0 flex flex-col">
-      <header className="h-12 flex items-center justify-end px-4 gap-2">
+    <main className="flex-1 min-w-0 flex flex-col h-screen">
+      <header className="h-12 flex items-center justify-end px-4 gap-2 shrink-0">
         <SoundToggle />
       </header>
       <div className="flex-1 overflow-auto p-4 sm:p-6 pt-0">

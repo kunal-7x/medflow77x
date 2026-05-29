@@ -27,3 +27,11 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# Credentials & deploy scripts
+youask.md
+foryou.txt
+deploy_*.ps1
+
+# Local Supabase CLI metadata
+supabase/.temp/
