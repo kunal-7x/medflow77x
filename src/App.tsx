@@ -34,6 +34,47 @@ import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
+class RouteErrorBoundary extends React.Component<
+  { children: React.ReactNode; resetKey: string },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidUpdate(prevProps: { resetKey: string }) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="max-w-md rounded-2xl border border-border/40 bg-card p-6 text-center shadow-lg">
+            <h2 className="text-lg font-semibold text-foreground">This view could not render.</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              The page recovered from an invalid record. Go back to the dashboard and try again.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.assign("/dashboard")}
+              className="mt-4 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const PageTransition = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   return (
@@ -51,21 +92,27 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const Layout = ({ children }: { children: React.ReactNode }) => (
-  <div className="h-screen overflow-hidden bg-background flex w-full">
-    <Sidebar />
-    <main className="flex-1 min-w-0 flex flex-col h-screen">
-      <header className="h-12 flex items-center justify-end px-4 gap-2 shrink-0">
-        <SoundToggle />
-      </header>
-      <div className="flex-1 overflow-auto p-4 sm:p-6 pt-0">
-        <PageTransition>
-          {children}
-        </PageTransition>
-      </div>
-    </main>
-  </div>
-);
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+
+  return (
+    <div className="h-screen overflow-hidden bg-background flex w-full">
+      <Sidebar />
+      <main className="flex-1 min-w-0 flex flex-col h-screen">
+        <header className="h-12 flex items-center justify-end px-4 gap-2 shrink-0">
+          <SoundToggle />
+        </header>
+        <div className="flex-1 overflow-auto p-4 sm:p-6 pt-0">
+          <RouteErrorBoundary resetKey={`${location.pathname}${location.search}`}>
+            <PageTransition>
+              {children}
+            </PageTransition>
+          </RouteErrorBoundary>
+        </div>
+      </main>
+    </div>
+  );
+};
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { user, role, loading, isVisitor } = useAuth();

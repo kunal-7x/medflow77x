@@ -189,28 +189,69 @@ interface HospitalDataContextType {
 
 const HospitalDataContext = createContext<HospitalDataContextType | null>(null);
 
+function textOr(value: unknown, fallback = '') {
+  const text = value === null || value === undefined ? '' : String(value).trim();
+  return text || fallback;
+}
+
+function numberOr(value: unknown, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function normalizeCondition(value: unknown): Patient['condition'] {
+  const condition = textOr(value, 'Good');
+  if (condition === 'Critical' || condition === 'Stable' || condition === 'Good' || condition === 'Fair') {
+    return condition;
+  }
+  const titleCase = condition.charAt(0).toUpperCase() + condition.slice(1).toLowerCase();
+  return titleCase === 'Critical' || titleCase === 'Stable' || titleCase === 'Good' || titleCase === 'Fair'
+    ? titleCase
+    : 'Good';
+}
+
+function normalizeStatus(value: unknown): Patient['status'] {
+  return textOr(value).toLowerCase() === 'discharged' ? 'discharged' : 'active';
+}
+
+function normalizeVitals(value: unknown, fallbackTimestamp = ''): Patient['vitals'] {
+  const source = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+  return {
+    heartRate: numberOr(source.heartRate ?? source.heart_rate, 0),
+    bloodPressure: textOr(source.bloodPressure ?? source.blood_pressure, '0/0'),
+    temperature: numberOr(source.temperature, 0),
+    oxygenSat: numberOr(source.oxygenSat ?? source.oxygen_sat ?? source.spo2, 0),
+    timestamp: textOr(source.timestamp ?? source.recorded_at, fallbackTimestamp || new Date().toISOString()),
+  };
+}
+
+function normalizeVitalsHistory(value: unknown): Patient['vitalsHistory'] {
+  return Array.isArray(value) ? value.map(item => normalizeVitals(item)) : [];
+}
+
 // Helper to map DB row to Patient
 function mapDbPatient(row: any): Patient {
+  const timestamp = row.updated_at || row.created_at || new Date().toISOString();
   return {
-    id: row.id,
-    name: row.name,
-    age: row.age || 0,
-    gender: row.gender || '',
-    condition: row.condition || 'Good',
-    bedNumber: row.bed_number || 'Unassigned',
-    admissionDate: row.admission_date || '',
-    doctor: row.doctor || '',
-    diagnosis: row.diagnosis || '',
-    allergies: row.allergies || [],
-    vitals: row.vitals || { heartRate: 0, bloodPressure: '0/0', temperature: 0, oxygenSat: 0, timestamp: '' },
-    vitalsHistory: row.vitals_history || [],
+    id: textOr(row.id),
+    name: textOr(row.name, 'Unnamed Patient'),
+    age: numberOr(row.age, 0),
+    gender: textOr(row.gender, 'Unknown'),
+    condition: normalizeCondition(row.condition),
+    bedNumber: textOr(row.bed_number, 'Unassigned'),
+    admissionDate: textOr(row.admission_date, new Date().toISOString().split('T')[0]),
+    doctor: textOr(row.doctor, 'Unassigned'),
+    diagnosis: textOr(row.diagnosis, 'No diagnosis recorded'),
+    allergies: Array.isArray(row.allergies) ? row.allergies.map((allergy: unknown) => textOr(allergy)).filter(Boolean) : [],
+    vitals: normalizeVitals(row.vitals, timestamp),
+    vitalsHistory: normalizeVitalsHistory(row.vitals_history),
     lastUpdated: row.updated_at ? new Date(row.updated_at).toLocaleString() : 'Unknown',
     contactInfo: {
-      phone: row.phone || '',
-      email: row.email || '',
-      emergencyContact: row.emergency_contact || ''
+      phone: textOr(row.phone),
+      email: textOr(row.email),
+      emergencyContact: textOr(row.emergency_contact)
     },
-    status: row.status || 'active',
+    status: normalizeStatus(row.status),
     dateOfBirth: row.date_of_birth,
     bloodGroup: row.blood_group,
     address: row.address,

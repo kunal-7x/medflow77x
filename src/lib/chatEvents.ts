@@ -7,7 +7,9 @@ class ChatEventBus {
   on(event: string, cb: EventCallback) {
     if (!this.listeners.has(event)) this.listeners.set(event, new Set());
     this.listeners.get(event)!.add(cb);
-    return () => this.listeners.get(event)?.delete(cb);
+    return () => {
+      this.listeners.get(event)?.delete(cb);
+    };
   }
 
   emit(event: string, data?: any) {

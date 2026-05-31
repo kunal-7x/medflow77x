@@ -24,11 +24,15 @@ export function PatientManagement() {
   const aiFocus = useAiFocus(setSearchTerm);
 
   const filteredPatients = patients.filter(patient => {
-    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.diagnosis.toLowerCase().includes(searchTerm.toLowerCase());
+    const patientName = patient.name || "";
+    const patientId = patient.id || "";
+    const diagnosis = patient.diagnosis || "";
+    const bedNumber = patient.bedNumber || "";
+    const matchesSearch = patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         patientId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         diagnosis.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCondition = filterCondition === "all" || patient.condition === filterCondition;
-    const matchesWard = filterWard === "all" || patient.bedNumber.includes(filterWard);
+    const matchesWard = filterWard === "all" || bedNumber.includes(filterWard);
     return matchesSearch && matchesCondition && matchesWard;
   });
 

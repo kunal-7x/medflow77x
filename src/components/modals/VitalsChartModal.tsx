@@ -16,7 +16,15 @@ interface VitalsChartModalProps {
 export function VitalsChartModal({ isOpen, onClose, patient }: VitalsChartModalProps) {
   const [selectedTimeRange, setSelectedTimeRange] = useState("24h");
 
-  const vitalsData = [patient.vitals, ...patient.vitalsHistory].sort((a, b) => 
+  const emptyVitals = {
+    heartRate: 0,
+    bloodPressure: '0/0',
+    temperature: 0,
+    oxygenSat: 0,
+    timestamp: new Date().toISOString(),
+  };
+
+  const vitalsData = [patient.vitals || emptyVitals, ...(patient.vitalsHistory || [])].sort((a, b) =>
     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 
@@ -46,7 +54,7 @@ export function VitalsChartModal({ isOpen, onClose, patient }: VitalsChartModalP
         if (sat < 98) return 'warning';
         return 'normal';
       case 'bloodPressure':
-        const bp = value as string;
+        const bp = String(value || '0/0');
         const [systolic] = bp.split('/').map(Number);
         if (systolic > 140 || systolic < 90) return 'warning';
         return 'normal';

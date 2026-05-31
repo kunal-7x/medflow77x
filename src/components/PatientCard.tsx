@@ -22,6 +22,8 @@ export function PatientCard({ patient }: PatientCardProps) {
   const { toast } = useToast();
   const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
   const [isVitalsChartOpen, setIsVitalsChartOpen] = useState(false);
+  const displayName = patient.name || "Unnamed Patient";
+  const initials = displayName.split(/\s+/).filter(Boolean).map(namePart => namePart[0]).join('').slice(0, 2) || "UP";
 
   const getConditionColor = (condition: string) => {
     switch (condition) {
@@ -42,12 +44,12 @@ export function PatientCard({ patient }: PatientCardProps) {
 
   const handleDischarge = () => {
     dischargePatient(patient.id);
-    toast({ title: "Patient discharged", description: `${patient.name} has been successfully discharged` });
+    toast({ title: "Patient discharged", description: `${displayName} has been successfully discharged` });
   };
 
   const handleDelete = () => {
     deletePatient(patient.id);
-    toast({ title: "Patient record deleted", description: `${patient.name}'s record has been removed` });
+    toast({ title: "Patient record deleted", description: `${displayName}'s record has been removed` });
   };
 
   return (
@@ -57,11 +59,11 @@ export function PatientCard({ patient }: PatientCardProps) {
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10 border border-border/50">
               <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-                {patient.name.split(' ').map(n => n[0]).join('')}
+                {initials}
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-sm font-semibold">{patient.name}</CardTitle>
+              <CardTitle className="text-sm font-semibold">{displayName}</CardTitle>
               <CardDescription className="flex items-center gap-3 mt-0.5 text-xs">
                 <span>{patient.age}y • {patient.gender}</span>
                 <span className="flex items-center gap-1">

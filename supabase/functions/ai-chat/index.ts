@@ -60,7 +60,27 @@ async function exec(sb: any, action: string, data: any) {
       case "add_patient": {
         const condition = (data.condition || "Stable").toString();
         const normalizedCondition = condition.charAt(0).toUpperCase() + condition.slice(1).toLowerCase();
-        const p = { name: data.name, date_of_birth: data.date_of_birth||null, age: data.age||null, gender: data.gender||null, condition: normalizedCondition, bed_number: data.bed_number||"Unassigned", doctor: data.doctor||null, diagnosis: data.diagnosis||"", allergies: data.allergies||[], blood_group: data.blood_group||null, address: data.address||null, phone: data.phone||null, email: data.email||null, emergency_contact: data.emergency_contact||null, status: "active", ward: data.ward||null };
+        const ts = new Date().toISOString();
+        const p = {
+          name: data.name || "Unnamed Patient",
+          date_of_birth: data.date_of_birth || null,
+          age: data.age || null,
+          gender: data.gender || null,
+          condition: normalizedCondition,
+          bed_number: data.bed_number || "Unassigned",
+          doctor: data.doctor || null,
+          diagnosis: data.diagnosis || "",
+          allergies: data.allergies || [],
+          blood_group: data.blood_group || null,
+          address: data.address || null,
+          phone: data.phone || null,
+          email: data.email || null,
+          emergency_contact: data.emergency_contact || null,
+          status: "active",
+          ward: data.ward || null,
+          vitals: { heartRate: 0, bloodPressure: "0/0", temperature: 0, oxygenSat: 0, timestamp: ts },
+          vitals_history: [],
+        };
         const { data: r, error } = await sb.from("patients").insert(p).select().single();
         return error ? { ok:false, error:error.message } : { ok:true, table:"patients", op:"insert", record:r };
       }
