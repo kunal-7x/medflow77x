@@ -35,3 +35,5 @@ deploy_*.ps1
 
 # Local Supabase CLI metadata
 supabase/.temp/
+
+.vercel
