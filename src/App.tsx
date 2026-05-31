@@ -30,12 +30,12 @@ import { Loader2 } from "lucide-react";
 import AIChatbot from "./components/AIChatbot";
 import { chatEvents } from "@/lib/chatEvents";
 import { getAiActionRoute } from "@/lib/aiNavigation";
-import { useEffect } from "react";
+import { Component, useEffect, type ReactNode } from "react";
 
 const queryClient = new QueryClient();
 
-class RouteErrorBoundary extends React.Component<
-  { children: React.ReactNode; resetKey: string },
+class RouteErrorBoundary extends Component<
+  { children: ReactNode; resetKey: string },
   { hasError: boolean }
 > {
   state = { hasError: false };
@@ -75,7 +75,7 @@ class RouteErrorBoundary extends React.Component<
   }
 }
 
-const PageTransition = ({ children }: { children: React.ReactNode }) => {
+const PageTransition = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   return (
     <AnimatePresence mode="wait">
@@ -92,7 +92,7 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+const Layout = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
 
   return (
@@ -114,7 +114,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
+function ProtectedRoute({ children, allowedRoles }: { children: ReactNode; allowedRoles?: string[] }) {
   const { user, role, loading, isVisitor } = useAuth();
 
   if (loading) {
