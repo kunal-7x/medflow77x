@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MedFlow logo">
+  <rect width="64" height="64" fill="#000000"/>
+  <path
+    fill="#d9d9d9"
+    d="M10.2 12.5H57.5V52H6.5V16.7l6.8 6.8v18h39.2v-18H15.7L10.2 12.5Z"
+  />
+</svg>
