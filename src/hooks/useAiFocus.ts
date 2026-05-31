@@ -8,8 +8,13 @@ export function useAiFocus(setSearchTerm?: (value: string) => void) {
   const op = params.get("aiOp") || "";
 
   useEffect(() => {
-    if (search && setSearchTerm) setSearchTerm(search);
-  }, [search, setSearchTerm]);
+    if (!setSearchTerm) return;
+    if (op === "insert") {
+      setSearchTerm("");
+      return;
+    }
+    if (search) setSearchTerm(search);
+  }, [op, search, setSearchTerm]);
 
   return {
     focusId,

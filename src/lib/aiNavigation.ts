@@ -46,7 +46,7 @@ export function getAiActionRoute(payload: AiActionPayload) {
   params.set("aiTable", table);
   if (payload.op) params.set("aiOp", payload.op);
   if (focusId) params.set("aiFocus", focusId);
-  if (search) params.set("aiSearch", search);
+  if (search && payload.op !== "insert") params.set("aiSearch", search);
 
   return `${path}?${params.toString()}`;
 }
